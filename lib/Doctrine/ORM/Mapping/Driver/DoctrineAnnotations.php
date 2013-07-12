@@ -18,6 +18,7 @@
  */
 
 require_once __DIR__.'/../Annotation.php';
+require_once __DIR__.'/../BrokenNull.php';
 require_once __DIR__.'/../Entity.php';
 require_once __DIR__.'/../MappedSuperclass.php';
 require_once __DIR__.'/../InheritanceType.php';
@@ -64,3 +65,4 @@ require_once __DIR__.'/../AssociationOverride.php';
 require_once __DIR__.'/../AssociationOverrides.php';
 require_once __DIR__.'/../AttributeOverride.php';
 require_once __DIR__.'/../AttributeOverrides.php';
+

@@ -669,6 +669,27 @@ class UnitOfWork implements PropertyChangedListener
                 }
             }
         }
+
+        $changeSets = $this->entityChangeSets;
+
+        foreach ($changeSets as $oid => $entityChangeSet) {
+            foreach ($entityChangeSet as $field => $change) {
+                if ($change[1] !== null) {
+                    continue;
+                }
+                if ($class->hasAssociation($field)) {
+                    $mapping = $class->getAssociationMapping($field);
+
+                    if (isset($mapping['joinColumns'][0]['brokenNull']) && $mapping['joinColumns'][0]['brokenNull']) {
+                        $targetEntity = $this->em->getClassMetadata($mapping['targetEntity']);
+                        // mop: for references the persister (at least the basic) expects an object
+                        // and will ask the UoW for an id (getEntityIdentifier)
+                        $changeSets[$oid][$field][1] = new BogusNull($targetEntity, $mapping['joinColumns'][0]['referencedColumnName']);
+                    }
+                }
+            }
+        }
+        $this->entityChangeSets = $changeSets;
     }
 
     /**
@@ -2417,6 +2438,21 @@ class UnitOfWork implements PropertyChangedListener
         $class = $this->em->getClassMetadata($className);
         //$isReadOnly = isset($hints[Query::HINT_READ_ONLY]);
 
+        // mop: XXX performance...maybe this can be done in the main loop below but first be safe :S
+        foreach ($class->associationMappings as $assoc) {
+            if (isset($assoc['joinColumns'])) {
+                foreach ($assoc['joinColumns'] as $joinColumn) {
+                    if (isset($joinColumn['brokenNull'])
+                        && $joinColumn['brokenNull']
+                        && isset($data[$joinColumn['name']])
+                        && !trim($data[$joinColumn['name']])
+                    ) {
+                        $data[$joinColumn['name']] = null;
+                    }
+                }
+            }
+        }
+
         if ($class->isIdentifierComposite) {
             $id = array();
 
@@ -2773,6 +2809,9 @@ class UnitOfWork implements PropertyChangedListener
      */
     public function getEntityIdentifier($entity)
     {
+        if ($entity instanceof BogusNull) {
+            return ['id' => $entity->getNull()];
+        }
         return $this->entityIdentifiers[spl_object_hash($entity)];
     }
 

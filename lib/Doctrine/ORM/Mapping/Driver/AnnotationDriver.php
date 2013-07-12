@@ -298,6 +298,13 @@ class AnnotationDriver extends AbstractAnnotationDriver
                     $mapping['id'] = true;
                 }
 
+                if ($brokenNull = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\BrokenNull')) {
+                    if (count($joinColumns) != 1) {
+                        throw new \InvalidArgumentException("Invalid join configuration. BrokenNulls can only handle simple joins");
+                    }
+                    $joinColumns[0]['brokenNull'] = true;
+                }
+
                 $mapping['targetEntity'] = $oneToOneAnnot->targetEntity;
                 $mapping['joinColumns'] = $joinColumns;
                 $mapping['mappedBy'] = $oneToOneAnnot->mappedBy;
