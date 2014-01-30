@@ -2810,7 +2810,8 @@ class UnitOfWork implements PropertyChangedListener
     public function getEntityIdentifier($entity)
     {
         if ($entity instanceof BogusNull) {
-            return ['id' => $entity->getNull()];
+            $columnNames = $entity->getClass()->columnNames;
+            return [array_search($entity->getFieldname(), $columnNames) => $entity->getNull()];
         }
         return $this->entityIdentifiers[spl_object_hash($entity)];
     }

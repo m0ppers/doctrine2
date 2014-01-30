@@ -23,6 +23,16 @@ class BogusNull
         $this->fieldName = $fieldName;
     }
 
+    public function getFieldname()
+    {
+        return $this->fieldName;
+    }
+
+    public function getClass()
+    {
+        return $this->class;
+    }
+
     public function getNull()
     {
         $type = $this->class->getTypeOfColumn($this->fieldName);
